@@ -7,13 +7,14 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import StudentProfile
+from .models import StudentProfile, CouncillorProfile
 
 # Register Serializer for user registration
 
 User = get_user_model()
 
 
+# register for all users
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -96,11 +97,62 @@ class CreateStudentProfileSerializer(serializers.ModelSerializer):
         return profile
 
 
-# individual student profile serializer
+# create councillors profiles
+
+class CreateCouncillorsProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CouncillorProfile
+        fields = ['title', 'user', 'qualification', 'discipline', 'birthday', 'years_of_exerience', 'gender', 'address',
+                  'phone_number', 'country', 'profile_picture']
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['user'] = RegisterSerializer(instance.user).data
+        return response
+
+    def validate(self, attrs):
+        phone_number = attrs.get('phone_number', '')
+        if not re.match(r"(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)", phone_number):
+            raise serializers.ValidationError('This phone number is invalid')
+
+        return attrs
+
+    def create(self, validated_data):
+        councillor = CouncillorProfile.objects.create(
+            title=validated_data['title'],
+            user=validated_data['user'],
+            qualification=validated_data['qualification'],
+            discipline=validated_data['discipline'],
+            years_of_exerience=validated_data['years_of_exerience'],
+            birthday=validated_data['birthday'],
+            gender=validated_data['gender'],
+            address=validated_data['address'],
+            phone_number=validated_data['phone_number'],
+            country=validated_data['country'],
+            profile_picture=validated_data['profile_picture'],
+        )
+        councillor.save()
+        return councillor
+
+
+# individual student profile list
 
 class ListStudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['user'] = RegisterSerializer(instance.user).data
+        return response
+
+
+# individual councillor profile list
+
+class ListCouncillorProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CouncillorProfile
         fields = '__all__'
 
     def to_representation(self, instance):
@@ -136,7 +188,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
         if user.pk != instance.pk:
             raise serializers.ValidationError({'authorize': "You don't have permission to update this user"})
-        print(validated_data)
+        #print(validated_data)
         instance.username = validated_data['username']
         instance.first_name = validated_data['first_name']
         instance.last_name = validated_data['last_name']
@@ -171,6 +223,35 @@ class UpdateStudentProfileSerializer(serializers.ModelSerializer):
         instance.country = validated_data['country']
         instance.profile_picture = validated_data['profile_picture']
 
+        instance.save()
+        return instance
+
+
+# update councillor profile
+
+class UpdateCouncillorProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentProfile
+        fields = ['title', 'qualification', 'discipline', 'birthday', 'years_of_exerience', 'gender', 'address',
+                  'phone_number', 'country', 'profile_picture']
+
+    def update(self, instance, validated_data):
+        # add checkpoint, logged in user only must be updated
+        user = self.context['request'].user
+
+        if user.pk != instance.pk:
+            raise serializers.ValidationError({'authorize': "You don't have permission to update this users details"})
+
+        instance.title = validated_data['title']
+        instance.qualification = validated_data['qualification']
+        instance.discipline = validated_data['discipline']
+        instance.years_of_exerience = validated_data['years_of_exerience']
+        instance.birthday = validated_data['birthday']
+        instance.gender = validated_data['gender']
+        instance.address = validated_data['address']
+        instance.phone_number = validated_data['phone_number']
+        instance.country = validated_data['country']
+        instance.profile_picture = validated_data['profile_picture']
         instance.save()
         return instance
 
