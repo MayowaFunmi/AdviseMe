@@ -4,6 +4,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from .models import StudentProfile
 
 # Register Serializer for user registration
@@ -104,3 +107,121 @@ class ListStudentProfileSerializer(serializers.ModelSerializer):
         response = super().to_representation(instance)
         response['user'] = RegisterSerializer(instance.user).data
         return response
+
+
+# update user model data
+class UpdateUserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
+
+    class Meta:
+        model = User
+        fields = ('username', 'first_name', 'last_name', 'email')
+        # extra_kwargs = {'first_name': {'required': True}, 'last_name': {'required': True}}
+
+    def validate_email(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(email=value).exists():
+            raise serializers.ValidationError({'email': "This email already exists"})
+        return value
+
+    def validate_username(self, value):
+        user = self.context['request'].user
+        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
+            raise serializers.ValidationError({'username': "This username already exists"})
+        return value
+
+    def update(self, instance, validated_data):
+        # add checkpoint, logged in user only must be updated
+        user = self.context['request'].user
+
+        if user.pk != instance.pk:
+            raise serializers.ValidationError({'authorize': "You don't have permission to update this user"})
+        print(validated_data)
+        instance.username = validated_data['username']
+        instance.first_name = validated_data['first_name']
+        instance.last_name = validated_data['last_name']
+        instance.email = validated_data['email']
+
+        instance.save()
+        return instance
+
+
+# update student profile
+
+class UpdateStudentProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentProfile
+        fields = ['middle_name', 'student_level', 'birthday', 'gender', 'address', 'phone_number', 'country',
+                  'profile_picture'
+                  ]
+
+    def update(self, instance, validated_data):
+        # add checkpoint, logged in user only must be updated
+        user = self.context['request'].user
+
+        if user.pk != instance.pk:
+            raise serializers.ValidationError({'authorize': "You don't have permission to update this users details"})
+
+        instance.middle_name = validated_data['middle_name']
+        instance.student_level = validated_data['student_level']
+        instance.birthday = validated_data['birthday']
+        instance.gender = validated_data['gender']
+        instance.address = validated_data['address']
+        instance.phone_number = validated_data['phone_number']
+        instance.country = validated_data['country']
+        instance.profile_picture = validated_data['profile_picture']
+
+        instance.save()
+        return instance
+
+
+# change password
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+    old_password = serializers.CharField(write_only=True, required=True)
+
+    class Meta:
+        model = User
+        fields = ('old_password', 'password', 'password2')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({'password': "Password fields didn't match"})
+        return attrs
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError({'old_password': "old Password is not correct"})
+        return value
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+
+        if user.pk != instance.pk:
+            raise serializers.ValidationError({'authorize': "You don't have permission to change this user's password"})
+
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return instance
+
+
+# logout serializer
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+    default_error_message = {
+        'bad_token': ('Token is expired or invalid')
+    }
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            RefreshToken(self.token).blacklist()
+
+        except TokenError:
+            self.fail('bad_token')

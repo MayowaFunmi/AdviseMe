@@ -65,11 +65,11 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # 'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
-        #'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': (
-        #'rest_framework.permissions.AllowAny',
-        #'rest_framework.permissions.IsAuthenticatedOrReadOnly'
+        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
     )
 }
 
