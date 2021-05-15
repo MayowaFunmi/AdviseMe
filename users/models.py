@@ -58,7 +58,7 @@ class Course(models.Model):
 
 class CourseRegistration(models.Model):
     name = models.ForeignKey(User, on_delete=models.CASCADE)
-    courses_offered = models.ForeignKey(Course, related_name='courses', on_delete=models.CASCADE)
+    courses_offered = models.ForeignKey(Course, related_name='course_registration', on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.courses_offered} offered by {self.name}'
@@ -105,7 +105,7 @@ class Student(models.Model):
         ('Information and Media Studies', 'Information and Media Studies'),
     ]
     name = models.ForeignKey(User, on_delete=models.CASCADE)
-    profile = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(StudentProfile, related_name='students', on_delete=models.CASCADE)
     department = models.CharField(choices=DEPARTMENT, default=DEPARTMENT[0], max_length=100)
     student_type = models.CharField(choices=STUDENT_TYPE, default=STUDENT_TYPE[0], max_length=20)
     course_of_study = models.CharField(max_length=100)
@@ -128,7 +128,7 @@ class CouncillorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     qualification = models.CharField(max_length=100, help_text='What is your qualification?')
     discipline = models.CharField(max_length=100, help_text='What is your area/field of discipline?')
-    years_of_exerience = models.CharField(max_length=10, help_text='How many years of academic experience do you have?')
+    years_of_experience = models.CharField(max_length=10, help_text='How many years of academic experience do you have?')
     birthday = models.DateField()
     GENDER = [
         ('M', 'Male'),

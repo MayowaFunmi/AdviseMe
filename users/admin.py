@@ -5,7 +5,7 @@ from .models import CustomUser, StudentProfile, CouncillorProfile, CourseRegistr
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ['status', 'username', 'email', 'registration_number', 'first_name', 'last_name']
+    list_display = ['username', 'status', 'email', 'registration_number', 'first_name', 'last_name']
     list_filter = ['registration_number']
     search_fields = ('status',)
 
