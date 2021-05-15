@@ -7,7 +7,7 @@ from .models import StudentProfile, CouncillorProfile
 from .serializers import RegisterSerializer, ListUserSerializer, CreateStudentProfileSerializer, \
     ListStudentProfileSerializer, UpdateStudentProfileSerializer, UpdateUserSerializer, ChangePasswordSerializer, \
     LogoutSerializer, CreateCouncillorsProfileSerializer, ListCouncillorProfileSerializer, \
-    UpdateCouncillorProfileSerializer
+    UpdateCouncillorProfileSerializer, LoginSerializer
 
 User = get_user_model()
 
@@ -94,3 +94,13 @@ class LogoutView(generics.GenericAPIView):
         serializer.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    
+class LoginAPIView(generics.GenericAPIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
