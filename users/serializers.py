@@ -9,7 +9,7 @@ from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import StudentProfile, CouncillorProfile
+from .models import StudentProfile, CouncillorProfile, Course, CourseRegistration, Student
 
 # Register Serializer for user registration
 
@@ -356,3 +356,106 @@ class LoginSerializer(serializers.ModelSerializer):
         }
 
         return super().validate(attrs)
+
+
+# add course serializer
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ('semester', 'course_code', 'course_name', 'course_type', 'course_unit', 'minimum_credit', 'maximum_credit')
+
+    def create(self, validated_data):
+        course = Course.objects.create(
+            semester=validated_data['semester'],
+            course_code=validated_data['course_code'],
+            course_name=validated_data['course_name'],
+            course_type=validated_data['course_type'],
+            course_unit=validated_data['course_unit'],
+            minimum_credit=validated_data['minimum_credit'],
+            maximum_credit=validated_data['maximum_credit'],
+        )
+        course.save()
+        return course
+
+
+# list all courses
+class AllCoursesListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'
+
+
+# students create course registration
+
+class CourseRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseRegistration
+        fields = ['name', 'courses_offered']
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['name'] = RegisterSerializer(instance.name).data
+        response['courses_offered'] = CourseSerializer(instance.courses_offered).data
+        return response
+
+    def create(self, validated_data):
+        registration = CourseRegistration.objects.create(
+            name=validated_data['name'],
+            courses_offered=validated_data['courses_offered']
+        )
+        registration.save()
+        return registration
+
+
+# list all course registrations
+class AllCoursesRegistrationListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseRegistration
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['name'] = RegisterSerializer(instance.name).data
+        response['courses_offered'] = CourseSerializer(instance.courses_offered).data
+        return response
+
+
+# student data serializer for student model
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['name', 'profile', 'department', 'student_type', 'course_of_study', 'course_details']
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['name'] = RegisterSerializer(instance.name).data
+        response['profile'] = CreateStudentProfileSerializer(instance.profile).data
+        response['course_details'] = CourseRegistrationSerializer(instance.course_details).data
+        return response
+
+    def create(self, validated_data):
+        student = Student.objects.create(
+            name=validated_data['name'],
+            profile=validated_data['profile'],
+            department=validated_data['department'],
+            student_type=validated_data['student_type'],
+            course_of_study=validated_data['course_of_study'],
+            course_details=validated_data['course_details'],
+        )
+        student.save()
+        return student
+
+
+# list all students
+class AllStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['name'] = RegisterSerializer(instance.name).data
+        response['profile'] = CreateStudentProfileSerializer(instance.profile).data
+        response['course_details'] = CourseRegistrationSerializer(instance.course_details).data
+        return response
