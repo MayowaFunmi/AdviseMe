@@ -17,6 +17,7 @@ User = get_user_model()
 
 class IsOnlyAdmin(BasePermission):
     def has_permission(self, request, view):
+        user = User.objects.get(username=request.user)
         if request.user != user.is_superuser:
             pass
 
@@ -40,8 +41,11 @@ class ListUserView(generics.ListAPIView):
 # create student profile
 class StudentProfileView(generics.CreateAPIView):
     queryset = StudentProfile.objects.all()
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = CreateStudentProfileSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 # create councillor profile
@@ -49,6 +53,9 @@ class CouncillorProfileView(generics.CreateAPIView):
     queryset = CouncillorProfile.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = CreateCouncillorsProfileSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 #list individual student profiles
@@ -117,7 +124,7 @@ class LoginAPIView(generics.GenericAPIView):
 # create course view
 class CourseView(generics.CreateAPIView):
     queryset = Course.objects.all()
-    permission_classes = (AllowAny,)    # add custom permission, only for admins
+    permission_classes = (IsOnlyAdmin,)    # add custom permission, only for admins
     serializer_class = CourseSerializer
 
 

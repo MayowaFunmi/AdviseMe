@@ -64,7 +64,7 @@ class ListUserSerializer(serializers.ModelSerializer):
 
 
 # create student profiles
-
+'''
 class CreateStudentProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentProfile
@@ -98,11 +98,37 @@ class CreateStudentProfileSerializer(serializers.ModelSerializer):
         )
         profile.save()
         return profile
+'''
+
+
+class CreateStudentProfileSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
+    class Meta:
+        model = StudentProfile
+        fields = ['id', 'user', 'middle_name', 'student_level', 'birthday', 'gender', 'address', 'phone_number', 'country',
+                  'profile_picture'
+                  ]
+
+    # for nested serializer
+    def to_representation(self, instance):
+        response = super().to_representation(instance)
+        response['user'] = RegisterSerializer(instance.user).data
+        return response
+
+    def validate(self, attrs):
+        phone_number = attrs.get('phone_number', '')
+        if not re.match(r"(^[0]\d{10}$)|(^[\+]?[234]\d{12}$)", phone_number):
+            raise serializers.ValidationError('This phone number is invalid')
+
+        return attrs
 
 
 # create councillors profiles
 
 class CreateCouncillorsProfileSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = CouncillorProfile
         fields = ['title', 'user', 'qualification', 'discipline', 'birthday', 'years_of_exerience', 'gender', 'address',
@@ -120,6 +146,7 @@ class CreateCouncillorsProfileSerializer(serializers.ModelSerializer):
 
         return attrs
 
+'''
     def create(self, validated_data):
         councillor = CouncillorProfile.objects.create(
             title=validated_data['title'],
@@ -136,6 +163,7 @@ class CreateCouncillorsProfileSerializer(serializers.ModelSerializer):
         )
         councillor.save()
         return councillor
+'''
 
 
 # individual student profile list
