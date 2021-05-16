@@ -4,7 +4,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .models import StudentProfile, CouncillorProfile, Course, CourseRegistration, Student
-from .permissions import IsOnlyAdmin
+from .permissions import IsOnlyAdmin, IsOwner
 from .serializers import RegisterSerializer, ListUserSerializer, CreateStudentProfileSerializer, \
     ListStudentProfileSerializer, UpdateStudentProfileSerializer, UpdateUserSerializer, ChangePasswordSerializer, \
     LogoutSerializer, CreateCouncillorsProfileSerializer, ListCouncillorProfileSerializer, \
@@ -33,7 +33,7 @@ class ListUserView(generics.ListAPIView):
 # create student profile
 class StudentProfileView(generics.CreateAPIView):
     queryset = StudentProfile.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = CreateStudentProfileSerializer
 
     def perform_create(self, serializer):
@@ -43,7 +43,7 @@ class StudentProfileView(generics.CreateAPIView):
 # create councillor profile
 class CouncillorProfileView(generics.CreateAPIView):
     queryset = CouncillorProfile.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = CreateCouncillorsProfileSerializer
 
     def perform_create(self, serializer):
@@ -60,42 +60,42 @@ class ListStudentProfileView(generics.RetrieveAPIView):
 #list individual councillor profiles
 class ListCouncillorProfileView(generics.RetrieveAPIView):
     queryset = CouncillorProfile.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (AllowAny,)
     serializer_class = ListCouncillorProfileSerializer
 
 
 # update user
 class UpdateUserView(generics.UpdateAPIView):
     queryset = User.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = UpdateUserSerializer
 
 
 #update student profiles
 class UpdateStudentProfileView(generics.UpdateAPIView):
     queryset = StudentProfile.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = UpdateStudentProfileSerializer
 
 
 #update councillor profiles
 class UpdateCouncillorProfileView(generics.UpdateAPIView):
     queryset = CouncillorProfile.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = UpdateCouncillorProfileSerializer
 
 
 # change password view
 class ChangePasswordView(generics.UpdateAPIView):
     queryset = User.objects.all()
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = ChangePasswordSerializer
 
 
 # logout views
 class LogoutView(generics.GenericAPIView):
     serializer_class = LogoutSerializer
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, IsOwner)
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -131,7 +131,7 @@ class AllCourseListView(generics.ListAPIView):
 # create course registration view
 class CourseRegistrationView(generics.CreateAPIView):
     queryset = CourseRegistration.objects.all()
-    permission_classes = (AllowAny,)    # add custom permission, only for admins
+    permission_classes = (IsAuthenticated, IsOwner)    # add custom permission, only for admins
     serializer_class = CourseRegistrationSerializer
 
     def perform_create(self, serializer):
@@ -148,7 +148,7 @@ class ListCourseRegistrationView(generics.ListAPIView):
 # create student view
 class StudentView(generics.CreateAPIView):
     queryset = Student.objects.all()
-    permission_classes = (IsAuthenticated,)    # add custom permission, only for admins
+    permission_classes = (IsAuthenticated, IsOwner)
     serializer_class = StudentSerializer
 
     def perform_create(self, serializer):
