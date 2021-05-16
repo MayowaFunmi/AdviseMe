@@ -1,5 +1,4 @@
 import re
-
 from django.contrib import auth
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -8,7 +7,6 @@ from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from .models import StudentProfile, CouncillorProfile, Course, CourseRegistration, Student
 
 # Register Serializer for user registration
@@ -416,16 +414,19 @@ class AllCoursesListSerializer(serializers.ModelSerializer):
 # students create course registration
 
 class CourseRegistrationSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = CourseRegistration
-        fields = ['name', 'courses_offered']
+        fields = ['user', 'courses_offered']
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['name'] = RegisterSerializer(instance.name).data
+        response['user'] = RegisterSerializer(instance.name).data
         response['courses_offered'] = CourseSerializer(instance.courses_offered).data
         return response
 
+'''
     def create(self, validated_data):
         registration = CourseRegistration.objects.create(
             name=validated_data['name'],
@@ -433,6 +434,7 @@ class CourseRegistrationSerializer(serializers.ModelSerializer):
         )
         registration.save()
         return registration
+'''
 
 
 # list all course registrations
@@ -443,7 +445,7 @@ class AllCoursesRegistrationListSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['name'] = RegisterSerializer(instance.name).data
+        response['user'] = RegisterSerializer(instance.name).data
         response['courses_offered'] = CourseSerializer(instance.courses_offered).data
         return response
 
@@ -451,17 +453,20 @@ class AllCoursesRegistrationListSerializer(serializers.ModelSerializer):
 # student data serializer for student model
 
 class StudentSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.username')
+
     class Meta:
         model = Student
-        fields = ['name', 'profile', 'department', 'student_type', 'course_of_study', 'course_details']
+        fields = ['user', 'profile', 'department', 'student_type', 'course_of_study', 'course_details']
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['name'] = RegisterSerializer(instance.name).data
+        response['user'] = RegisterSerializer(instance.name).data
         response['profile'] = CreateStudentProfileSerializer(instance.profile).data
         response['course_details'] = CourseRegistrationSerializer(instance.course_details).data
         return response
 
+'''
     def create(self, validated_data):
         student = Student.objects.create(
             name=validated_data['name'],
@@ -473,6 +478,7 @@ class StudentSerializer(serializers.ModelSerializer):
         )
         student.save()
         return student
+'''
 
 
 # list all students
@@ -483,7 +489,7 @@ class AllStudentSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['name'] = RegisterSerializer(instance.name).data
+        response['user'] = RegisterSerializer(instance.name).data
         response['profile'] = CreateStudentProfileSerializer(instance.profile).data
         response['course_details'] = CourseRegistrationSerializer(instance.course_details).data
         return response
