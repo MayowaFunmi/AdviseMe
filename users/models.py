@@ -57,7 +57,7 @@ class Course(models.Model):
 
 
 class CourseRegistration(models.Model):
-    name = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     courses_offered = models.ForeignKey(Course, related_name='course_registration', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -104,7 +104,7 @@ class Student(models.Model):
     DEPARTMENT = [
         ('Information and Media Studies', 'Information and Media Studies'),
     ]
-    name = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     profile = models.ForeignKey(StudentProfile, related_name='students', on_delete=models.CASCADE)
     department = models.CharField(choices=DEPARTMENT, default=DEPARTMENT[0], max_length=100)
     student_type = models.CharField(choices=STUDENT_TYPE, default=STUDENT_TYPE[0], max_length=20)

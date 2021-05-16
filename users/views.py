@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from rest_framework import generics, status
-from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from .models import StudentProfile, CouncillorProfile, Course, CourseRegistration, Student
+from .permissions import IsOnlyAdmin
 from .serializers import RegisterSerializer, ListUserSerializer, CreateStudentProfileSerializer, \
     ListStudentProfileSerializer, UpdateStudentProfileSerializer, UpdateUserSerializer, ChangePasswordSerializer, \
     LogoutSerializer, CreateCouncillorsProfileSerializer, ListCouncillorProfileSerializer, \
@@ -11,15 +12,6 @@ from .serializers import RegisterSerializer, ListUserSerializer, CreateStudentPr
     CourseRegistrationSerializer, AllCoursesRegistrationListSerializer, StudentSerializer, AllStudentSerializer
 
 User = get_user_model()
-
-
-# custom permission for admins
-
-class IsOnlyAdmin(BasePermission):
-    def has_permission(self, request, view):
-        user = User.objects.get(username=request.user)
-        if request.user != user.is_superuser:
-            pass
 
 
 # user registration view
@@ -121,6 +113,7 @@ class LoginAPIView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+
 # create course view
 class CourseView(generics.CreateAPIView):
     queryset = Course.objects.all()
@@ -141,6 +134,9 @@ class CourseRegistrationView(generics.CreateAPIView):
     permission_classes = (AllowAny,)    # add custom permission, only for admins
     serializer_class = CourseRegistrationSerializer
 
+    def perform_create(self, serializer):
+        serializer.save(name=self.request.user)
+
 
 # all courses list view
 class ListCourseRegistrationView(generics.ListAPIView):
@@ -152,8 +148,11 @@ class ListCourseRegistrationView(generics.ListAPIView):
 # create student view
 class StudentView(generics.CreateAPIView):
     queryset = Student.objects.all()
-    permission_classes = (AllowAny,)    # add custom permission, only for admins
+    permission_classes = (IsAuthenticated,)    # add custom permission, only for admins
     serializer_class = StudentSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(name=self.request.user)
 
 
 # all student view
