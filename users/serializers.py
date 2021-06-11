@@ -104,7 +104,7 @@ class CreateStudentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentProfile
-        fields = ['id', 'user', 'middle_name', 'student_level', 'birthday', 'gender', 'address', 'phone_number', 'country',
+        fields = ['user', 'middle_name', 'course', 'student_level', 'birthday', 'gender', 'address', 'phone_number', 'country',
                   'profile_picture'
                   ]
 
@@ -129,7 +129,7 @@ class CreateCouncillorsProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CouncillorProfile
-        fields = ['title', 'user', 'qualification', 'discipline', 'birthday', 'years_of_exerience', 'gender', 'address',
+        fields = ['title', 'user', 'qualification', 'discipline', 'birthday', 'years_of_experience', 'gender', 'address',
                   'phone_number', 'country', 'profile_picture']
 
     def to_representation(self, instance):
