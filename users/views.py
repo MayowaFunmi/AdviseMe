@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import render
 from rest_framework import generics, status
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from .models import StudentProfile, CouncillorProfile, Course, CourseRegistration, Student
 from .permissions import IsOnlyAdmin, IsOwner
@@ -33,7 +33,7 @@ class ListUserView(generics.ListAPIView):
 # create student profile
 class StudentProfileView(generics.CreateAPIView):
     queryset = StudentProfile.objects.all()
-    permission_classes = (IsAuthenticated, IsOwner)
+    permission_classes = (AllowAny, )
     serializer_class = CreateStudentProfileSerializer
 
     def perform_create(self, serializer):
@@ -43,10 +43,11 @@ class StudentProfileView(generics.CreateAPIView):
 # create councillor profile
 class CouncillorProfileView(generics.CreateAPIView):
     queryset = CouncillorProfile.objects.all()
-    permission_classes = (IsAuthenticated, IsOwner)
+    permission_classes = (AllowAny, )
     serializer_class = CreateCouncillorsProfileSerializer
 
     def perform_create(self, serializer):
+        print(self.request.user)
         serializer.save(user=self.request.user)
 
 
@@ -117,7 +118,7 @@ class LoginAPIView(generics.GenericAPIView):
 # create course view
 class CourseView(generics.CreateAPIView):
     queryset = Course.objects.all()
-    permission_classes = (IsOnlyAdmin,)    # add custom permission, only for admins
+    permission_classes = (IsAdminUser,)    # add custom permission, only for admins
     serializer_class = CourseSerializer
 
 
@@ -135,6 +136,8 @@ class CourseRegistrationView(generics.CreateAPIView):
     serializer_class = CourseRegistrationSerializer
 
     def perform_create(self, serializer):
+        # add status options to user: student  or adviser
+        # add if user.status = student or adviser
         serializer.save(name=self.request.user)
 
 

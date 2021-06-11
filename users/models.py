@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class CustomUser(AbstractUser):
     STATUS = [
-        ('student', 'student'),
+        ('Student', 'Student'),
         ('Course Adviser', 'Course Adviser'),
     ]
     registration_number = models.CharField(max_length=100)
@@ -61,7 +61,7 @@ class CourseRegistration(models.Model):
     courses_offered = models.ForeignKey(Course, related_name='course_registration', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.courses_offered} offered by {self.name}'
+        return f'{self.courses_offered} offered by {self.user.username}'
 
     def each_course_unit(self):
         return self.courses_offered.course_unit
@@ -81,8 +81,8 @@ class StudentProfile(models.Model):
     student_level = models.CharField(max_length=100)
     birthday = models.DateField()
     GENDER = [
-        ('M', 'Male'),
-        ('F', 'Female'),
+        ('Male', 'Male'),
+        ('Female', 'Female'),
     ]
     gender = models.CharField(choices=GENDER, max_length=10)
     address = models.CharField(max_length=250)
@@ -112,7 +112,7 @@ class Student(models.Model):
     course_details = models.ForeignKey(CourseRegistration, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.user.username
 
 
 # model for councillors
@@ -131,8 +131,8 @@ class CouncillorProfile(models.Model):
     years_of_experience = models.CharField(max_length=10, help_text='How many years of academic experience do you have?')
     birthday = models.DateField()
     GENDER = [
-        ('M', 'Male'),
-        ('F', 'Female'),
+        ('Male', 'Male'),
+        ('Female', 'Female'),
     ]
     gender = models.CharField(choices=GENDER, max_length=10)
     address = models.CharField(max_length=250)
